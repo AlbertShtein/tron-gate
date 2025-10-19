@@ -1,0 +1,51 @@
+parameters:
+  node:
+    base: ${FULLNODE_URL}
+    solidity: ${FULLNODE_SOLIDITY_URL}
+  encryption:
+    256:
+      base64: ${L256_BASE64_KEY}
+  database:
+    url: ${DATABASE_URI}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
+
+spring:
+  config:
+    import: file:.env[.properties]
+
+  application:
+    name: "Tron Gate"
+
+  datasource:
+    url: ${parameters.database.url}
+    username: ${parameters.database.username}
+    password: ${parameters.database.password}
+
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog.yaml
+
+  jpa:
+    properties:
+      hibernate:
+        current_session_context_class: org.springframework.orm.hibernate5.SpringSessionContext
+
+  grpc:
+    server:
+      port: 8443
+      ssl:
+        bundle: grpc
+        client-auth: require
+
+  ssl:
+    bundle:
+      jks:
+        grpc:
+          keystore:
+            location: classpath:certs/localhost.p12
+            password: secret
+          key:
+            password: secret
+          truststore:
+            location: classpath:certs/client.p12
+            password: secret
