@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package ashtein;
+
+option java_multiple_files = true;
+option java_package = "ashtein.trongate.proto";
+option java_outer_classname = "TronGateProto";
+
+service TronGate {
+  rpc CreateWallet (EmptyDto) returns (WalletResponseDto) {}
+  rpc GetAddress (WalletIdDto) returns (AddressResponseDto) {}
+  rpc GetAssets (WalletIdDto) returns (stream AssetsResponseDto) {}
+}
+
+message EmptyDto {}
+
+message WalletIdDto {
+  string id = 1;
+}
+
+message AssetsResponseDto {
+  string type = 1;
+  double balance = 2;
+}
+
+message WalletResponseDto {
+  string id = 1;
+}
+
+message AddressResponseDto {
+  string hex = 2;
+  string base58Check = 3;
+}
