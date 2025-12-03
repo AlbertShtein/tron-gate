@@ -1,14 +1,20 @@
 services:
   postgres:
-    image: postgres:16-alpine
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
     restart: always
     environment:
-      POSTGRES_DB: trongate
-      POSTGRES_USER: dev
-      POSTGRES_PASSWORD: secret
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5555:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   pgdata:

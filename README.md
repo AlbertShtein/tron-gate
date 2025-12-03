@@ -133,4 +133,100 @@ Here’s how to make it trust your CA and send the client certificate.
 
 ---
 
+## 🗄️ Database Setup
+
+This project uses **PostgreSQL 18** (Alpine) with rootless configuration and restricted access.
+
+### Starting PostgreSQL
+
+```bash
+# Запуск PostgreSQL контейнера
+docker-compose up -d postgres
+
+# Проверка статуса
+docker-compose ps postgres
+
+# Просмотр логов
+docker-compose logs -f postgres
+```
+
+### Database Configuration
+
+- **Database name:** `trongate`
+- **Port:** `5432`
+- **PostgreSQL version:** 18 (Alpine)
+
+### Database Users and Permissions
+
+| User | Password | Permissions | External Access |
+|------|----------|-------------|-----------------|
+| `trongate` | `trongate_password` | `SELECT`, `INSERT` on `wallet` table | ✅ Allowed |
+| `read` | `read_password` | `SELECT` on `wallet` table | ✅ Allowed |
+| `postgres` | N/A (trust for local) | Superuser (restricted on `trongate` DB) | ❌ Blocked |
+
+**Security Notes:**
+- User `postgres` **cannot connect from outside** the container (only localhost/internal)
+- Users `trongate` and `read` require passwords for external connections
+
+### Connection Examples
+
+#### Using `psql` command line
+
+```bash
+# Подключение как пользователь trongate (для чтения и записи)
+psql -h localhost -p 5432 -U trongate -d trongate
+# Password: trongate_password
+
+# Подключение как пользователь read (только чтение)
+psql -h localhost -p 5432 -U read -d trongate
+# Password: read_password
+```
+
+#### Connection String Format
+
+```bash
+# Для пользователя trongate (read/write)
+postgresql://trongate:trongate_password@localhost:5432/trongate
+
+# Для пользователя read (read-only)
+postgresql://read:read_password@localhost:5432/trongate
+```
+
+#### JDBC URL (for Spring Boot)
+
+```properties
+# В application.properties или через переменные окружения
+spring.datasource.url=jdbc:postgresql://localhost:5432/trongate
+spring.datasource.username=trongate
+spring.datasource.password=trongate_password
+```
+
+### Database Schema
+
+The `wallet` table structure:
+
+```sql
+CREATE TABLE wallet (
+    id UUID NOT NULL PRIMARY KEY,
+    private BYTEA,
+    sign BYTEA
+);
+```
+
+### Internal Container Access
+
+To access PostgreSQL from inside the container (as `postgres` user, no password required):
+
+```bash
+# Войти в контейнер
+docker-compose exec postgres psql -U postgres
+
+# Или напрямую подключиться к базе данных
+docker-compose exec postgres psql -U postgres -d trongate
+```
+
+**Note:** The `postgres` user is a superuser and can access all databases, but external connections are blocked for security.
+
+---
+
 **Enjoy your secure gRPC server 🔐**
