@@ -7,13 +7,115 @@ databaseChangeLog:
             tableName: wallet
             columns:
               - column:
+                  name: address
+                  type: BYTEA
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: private
+                  type: BYTEA
+              - column:
+                  name: sign
+                  type: BYTEA
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: block_cursor
+            columns:
+              - column:
                   name: id
                   type: VARCHAR(36)
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: private
-                  type: VARCHAR(100)
+                  name: block_number
+                  type: BIGINT
                   constraints:
                     nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: wallet_event
+            columns:
+              - column:
+                  name: id
+                  type: UUID
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: wallet_address
+                  type: VARCHAR(42)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tx_hash
+                  type: VARCHAR(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: block_number
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: block_timestamp
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_type
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: direction
+                  type: VARCHAR(3)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: from_address
+                  type: VARCHAR(42)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: to_address
+                  type: VARCHAR(42)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: NUMERIC(38,0)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: token_address
+                  type: VARCHAR(42)
+              - column:
+                  name: confirmed
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: wallet_event
+            columnNames: tx_hash, wallet_address, direction
+            constraintName: uq_wallet_event_tx_wallet_dir
+        - createIndex:
+            indexName: idx_wallet_event_wallet_address
+            tableName: wallet_event
+            columns:
+              - column:
+                  name: wallet_address

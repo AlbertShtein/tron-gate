@@ -1,12 +1,12 @@
 import com.google.protobuf.gradle.id
 
 plugins {
-	kotlin("jvm") version "1.9.25"
-	kotlin("plugin.spring") version "1.9.25"
-	id("org.springframework.boot") version "3.5.6"
+	kotlin("jvm") version "2.3.0"
+	kotlin("plugin.spring") version "2.3.0"
+	id("org.springframework.boot") version "4.0.2"
 	id("io.spring.dependency-management") version "1.1.7"
-	id("com.google.protobuf") version "0.9.4"
-	kotlin("plugin.jpa") version "1.9.25"
+	id("com.google.protobuf") version "0.9.6"
+	kotlin("plugin.jpa") version "2.3.0"
 }
 
 group = "ashtein"
@@ -15,7 +15,7 @@ description = "Tron Gate project for interacting with Tron network"
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(25)
 	}
 }
 
@@ -23,15 +23,16 @@ repositories {
 	mavenCentral()
 }
 
-extra["springGrpcVersion"] = "0.11.0"
+extra["springGrpcVersion"] = "1.0.2"
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.liquibase:liquibase-core")
 	implementation("io.grpc:grpc-services")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springframework.grpc:spring-grpc-spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("io.github.tronprotocol:trident:0.10.0")
+    implementation("io.github.tronprotocol:trident:0.11.0")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
@@ -54,11 +55,11 @@ kotlin {
 
 protobuf {
 	protoc {
-		artifact = "com.google.protobuf:protoc"
+		artifact = "com.google.protobuf:protoc:4.33.4"
 	}
 	plugins {
 		id("grpc") {
-			artifact = "io.grpc:protoc-gen-grpc-java"
+			artifact = "io.grpc:protoc-gen-grpc-java:1.77.1"
 		}
 	}
 	generateProtoTasks {

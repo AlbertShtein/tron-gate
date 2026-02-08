@@ -2,17 +2,18 @@ package ashtein.trongate.service.wallet
 
 import ashtein.trongate.model.Wallet
 import ashtein.trongate.repository.WalletRepository
+import ashtein.trongate.service.scanner.AddressCacheService
+import ashtein.trongate.util.TronAddressUtil
 import ashtein.trongate.vo.Private
+import org.bouncycastle.util.encoders.Hex
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.tron.trident.core.ApiWrapper
 import org.tron.trident.core.key.KeyPair
-import java.util.UUID
 
 open class WalletException(message: String) : Exception(message)
 open class WalletNotFoundException(message: String) : WalletException(message)
-open class WalletAddress(val public: String, val hex: String, val base58Check: String)
 open class WalletAssets(val type: String, val balance: Double)
 
 @Service
@@ -20,34 +21,24 @@ class WalletService(
     private val walletRepository: WalletRepository,
     @param:Value("\${parameters.node.base}") private val node: String,
     @param:Value("\${parameters.node.solidity}") private val nodeSolidity: String,
-    @param:Autowired private val adapters: List<AssetsAdapterInterface>
+    @param:Autowired private val adapters: List<AssetsAdapterInterface>,
+    private val addressCacheService: AddressCacheService
 ) {
     fun create(): String {
-        val keyPair: KeyPair = KeyPair.generate()
-        val wallet = Wallet(private = Private(keyPair.rawPair.privateKey.encoded))
-        walletRepository.save(wallet)
-
-        return wallet.id.toString()
-    }
-
-    @Throws(WalletException::class)
-    fun getWalletAddress(id: String): WalletAddress {
-        val wallet = this.getWallet(id)
-
-        val keyPair = KeyPair(wallet.private.toHex())
-
-        val address = WalletAddress(
-            keyPair.toPublicKey(),
-            keyPair.toHexAddress(),
-            keyPair.toBase58CheckAddress(),
+        val keyPair = KeyPair.generate()
+        val addressBytes = Hex.decode(keyPair.toHexAddress())
+        val wallet = Wallet(
+            address = addressBytes,
+            private = Private(keyPair.rawPair.privateKey.encoded)
         )
-
-        return address
+        walletRepository.save(wallet)
+        addressCacheService.register(addressBytes)
+        return keyPair.toBase58CheckAddress()
     }
 
     @Throws(WalletException::class)
-    fun getAssets(id: String): Sequence<WalletAssets> {
-        val wallet = this.getWallet(id)
+    fun getAssets(address: String): Sequence<WalletAssets> {
+        val wallet = this.getWallet(address)
         val client = ApiWrapper(node, nodeSolidity, wallet.private.toHex())
 
         return sequence {
@@ -68,10 +59,11 @@ class WalletService(
     }
 
     @Throws(WalletException::class)
-    private fun getWallet(id: String): Wallet {
-        val opt = walletRepository.findById(UUID.fromString(id))
+    private fun getWallet(base58: String): Wallet {
+        val addressBytes = TronAddressUtil.decodeBase58Check(base58)
+        val opt = walletRepository.findById(addressBytes)
         if (opt.isEmpty) {
-            throw WalletNotFoundException("No wallet found with id $id")
+            throw WalletNotFoundException("No wallet found with address $base58")
         }
 
         return opt.get()

@@ -8,14 +8,18 @@ option java_outer_classname = "TronGateProto";
 
 service TronGate {
   rpc CreateWallet (EmptyDto) returns (WalletResponseDto) {}
-  rpc GetAddress (WalletIdDto) returns (AddressResponseDto) {}
-  rpc GetAssets (WalletIdDto) returns (stream AssetsResponseDto) {}
+  rpc GetAssets (WalletAddressDto) returns (stream AssetsResponseDto) {}
+  rpc SubscribeEvents (SubscribeEventsRequest) returns (stream WalletEventDto) {}
 }
 
 message EmptyDto {}
 
-message WalletIdDto {
-  string id = 1;
+message SubscribeEventsRequest {
+  int64 last_block_number = 1;
+}
+
+message WalletAddressDto {
+  string address = 1;
 }
 
 message AssetsResponseDto {
@@ -24,10 +28,19 @@ message AssetsResponseDto {
 }
 
 message WalletResponseDto {
-  string id = 1;
+  string address = 1;
 }
 
-message AddressResponseDto {
-  string hex = 2;
-  string base58Check = 3;
+message WalletEventDto {
+  string wallet_address = 1;
+  string tx_hash = 2;
+  int64 block_number = 3;
+  int64 block_timestamp = 4;
+  string event_type = 5;
+  string direction = 6;
+  string from_address = 7;
+  string to_address = 8;
+  string amount = 9;
+  string token_address = 10;
+  bool confirmed = 11;
 }

@@ -9,6 +9,9 @@ parameters:
     url: ${DATABASE_URI}
     username: ${DATABASE_USER}
     password: ${DATABASE_PASSWORD}
+  scanner:
+    interval: 3000
+    usdt-contract: TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf
 
 spring:
   config:

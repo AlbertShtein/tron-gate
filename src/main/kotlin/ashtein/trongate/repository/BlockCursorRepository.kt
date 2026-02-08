@@ -1,8 +1,8 @@
 package ashtein.trongate.repository
 
-import ashtein.trongate.model.Wallet
+import ashtein.trongate.model.BlockCursor
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface WalletRepository: JpaRepository<Wallet, ByteArray>
+interface BlockCursorRepository : JpaRepository<BlockCursor, String>
